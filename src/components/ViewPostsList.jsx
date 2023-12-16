@@ -1,6 +1,10 @@
 import {useEffect, useState} from "react";
-import {getPosts} from "../postsService";
 import {Alert, Box, Card, CardContent, List, ListItem, Snackbar, Typography} from "@mui/material";
+import useWebSocket from "react-use-websocket";
+
+const WS_URL = "ws://127.0.0.1:8004";
+
+const uuid = require('uuid').v4;
 
 export const ViewPostsList = () => {
     const [posts, setPosts] = useState([]);
@@ -10,11 +14,16 @@ export const ViewPostsList = () => {
         text: ''
     });
 
+    const {lastJsonMessage} = useWebSocket(WS_URL, {
+        share: true,
+    });
+
     useEffect(() => {
-        getPosts()
-            .then(response => setPosts(response.data['posts']))
-            .catch(response => setSnackbarProps({open: true, severity: "error", text: response}))
-    }, []);
+        if (lastJsonMessage) {
+            console.log(`Received ${lastJsonMessage} from websocket`);
+            setPosts([...posts, JSON.parse(lastJsonMessage)]);
+        }
+    }, [lastJsonMessage]);
 
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -24,7 +33,11 @@ export const ViewPostsList = () => {
         setSnackbarProps((prev) => ({...prev, open: false}));
     };
 
-    // todo handle notifications
+    const flexContainer = {
+        display: 'flex',
+        flexDirection: 'row',
+        padding: 0,
+    };
 
     return (
         <Box
@@ -46,10 +59,10 @@ export const ViewPostsList = () => {
                         There are no posts...
                     </Typography>
                     :
-                    <List>
+                    <List style={flexContainer}>
                         {
                             posts.map(post => (
-                                <ListItem key={post.title}>
+                                <ListItem key={uuid()}>
                                     <Card variant={"outlined"}>
                                     <CardContent>
                                         <Typography variant="h5" component="div">
