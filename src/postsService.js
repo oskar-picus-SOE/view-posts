@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const apiGatewayUrl = "http://localhost:8080";
+const apiGatewayUrl = "http://localhost:9090";
 
 export const getPosts = async () => {
     const config = {
